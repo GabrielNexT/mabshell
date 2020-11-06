@@ -29,6 +29,10 @@ BuiltinCommand try_get_builtin_command(CommandLine*);
 
 BuiltinCommandFunction get_builtin_command_function(BuiltinCommand);
 
+void handle_sig_int(int);
+
+void handle_sig_stop(int);
+
 void handle_fg(CommandLine*);
 
 void handle_bg(CommandLine*);

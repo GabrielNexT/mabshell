@@ -4,6 +4,7 @@
 #include <stdbool.h>
 
 #include <errno.h>
+#include <signal.h> 
 #include <unistd.h>
 #include <sys/types.h>
 
@@ -11,6 +12,9 @@
 #include "utils.h"
 
 int main(int argc, char** argv) {
+
+    signal(SIGINT, handle_sig_int); 
+    signal(SIGTSTP, handle_sig_stop); 
 
     while(true) {
         // Writing prompt
@@ -52,6 +56,7 @@ char* read_line() {
         
         if(fgets(write_ptr, buffer_size, stdin) == NULL) {
             // TODO: Fim de arquivo. Terminar execucao do codigo
+            printf("End-of-file\n");
         }
 
         char last_char = result[strlen(result) - 1];
@@ -141,6 +146,15 @@ BuiltinCommandFunction get_builtin_command_function(BuiltinCommand builtin_comma
     default:
         return NULL;
     }
+}
+
+void handle_sig_int(int signal) {
+    printf("Handling SIGINT\n");
+    exit(0);
+}
+
+void handle_sig_stop(int signal) {
+    printf("Handling SIGSTP\n");
 }
 
 void handle_fg(CommandLine* command_line) {
