@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdbool.h>
 
+#include <errno.h>
 #include <unistd.h>
 #include <sys/types.h>
 
@@ -151,7 +152,23 @@ void handle_bg(CommandLine* command_line) {
 }
 
 void handle_cd(CommandLine* command_line) {
-    printf("Handling cd\n");
+    // NOTE: Não tratamos o caso 'cd ~', ou seja, não fazemos a expansão de til.
+    char* destination_path;
+    if(command_line->argument_count == 1) {
+        // Vamos para a HOME do usuário ao encontrar somente "cd" na linha de comando
+        destination_path = getenv("HOME");
+    } else if(command_line->argument_count > 2) {
+        // 'cd' não aceita mais de um argumento
+        printf("mabshell: cd : número excessivo de argumentos :(\n");
+        return;
+    } else {
+        destination_path = command_line->arguments[1];
+    }
+
+    int status = chdir(destination_path);
+    if(status < 0) {
+        perror("mabshell: cd");
+    }
 }
 
 void handle_jobs(CommandLine* command_line) {
