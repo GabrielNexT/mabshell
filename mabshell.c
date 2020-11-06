@@ -6,12 +6,17 @@
 #include <errno.h>
 #include <signal.h> 
 #include <unistd.h>
+#include <sys/wait.h>
 #include <sys/types.h>
 
 #include "mabshell.h"
+#include "processes.h"
 #include "utils.h"
 
 int main(int argc, char** argv) {
+
+    bool has_foreground_process = false;
+    pid_t foreground_process_id;
 
     signal(SIGINT, handle_sig_int); 
     signal(SIGTSTP, handle_sig_stop); 
@@ -33,11 +38,33 @@ int main(int argc, char** argv) {
                 BuiltinCommandFunction command_function = get_builtin_command_function(builtin);
                 command_function(&command_line);
             } else {
-                handle_external_command(&command_line);
+                pid_t pid = handle_external_command(&command_line);
+                if(pid > 0) {
+                    // TODO: Put process on job list
+                    
+                    // Process created with success
+                    if(!command_line.run_on_background) {
+                        has_foreground_process = true;
+                        foreground_process_id = pid;
+                    }
+                }
             }
         }
 
         free_command_line(&command_line);
+
+        if(has_foreground_process) {
+            int status;
+
+            do {
+                if(waitpid(foreground_process_id, &status, WUNTRACED | WCONTINUED) < 0) {
+                    perror("mabshell: waitpid(): ");
+                    exit(1);
+                }
+
+                has_foreground_process = false;
+            } while(has_foreground_process);
+        }
     }
 
     return 0;
@@ -56,8 +83,8 @@ char* read_line() {
         char* write_ptr = result + (offset * sizeof(char));
         
         if(fgets(write_ptr, buffer_size, stdin) == NULL) {
-            // TODO: Fim de arquivo. Terminar execucao do codigo
-            printf("End-of-file\n");
+            printf("\nExit: End-of-file\n");
+            exit(0);
         }
 
         char last_char = result[strlen(result) - 1];
@@ -104,9 +131,13 @@ CommandLine parse_command_line(char* line) {
         return result;
     }
 
-    result.arguments = (char**) malloc(result.argument_count * sizeof(char*));
+    // Alocando uma posição a mais para inserir uma string de terminação
+    result.arguments = (char**) malloc((result.argument_count + 1) * sizeof(char*));
 
     get_arguments(result.arguments, line);
+
+    // inserindo a string de terminação
+    result.arguments[result.argument_count] = NULL;
 
     return result;
 }
@@ -157,7 +188,7 @@ BuiltinCommandFunction get_builtin_command_function(BuiltinCommand builtin_comma
 
 void handle_sig_int(int signal) {
     printf("Handling SIGINT\n");
-    exit(0);
+    // exit(0);
 }
 
 void handle_sig_stop(int signal) {
@@ -197,5 +228,5 @@ void handle_jobs(CommandLine* command_line) {
 }
 
 pid_t handle_external_command(CommandLine* command_line) {
-    printf("handling external command\n");
+    return spawn_process(command_line->argument_count, command_line->arguments);
 }
