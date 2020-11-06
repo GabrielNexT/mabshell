@@ -15,6 +15,7 @@ int get_argument_count(char* line) {
 
         result++;
         
+        // TODO: Lidar com aspas simples e duplas
         while (*line != ' ' && *line != '\0') {
             line++;
         }
@@ -37,7 +38,8 @@ void get_arguments(char** result, char* line) {
 
         char* argument_start = line;
         int argument_length = 0;
-        
+
+        // TODO: Lidar com aspas simples e duplas       
         while (*line != ' ' && *line != '\0') {
             argument_length++;
 

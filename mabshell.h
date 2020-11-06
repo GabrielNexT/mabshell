@@ -25,6 +25,8 @@ char* read_line();
 
 CommandLine parse_command_line(char*);
 
+void free_command_line(CommandLine*);
+
 BuiltinCommand try_get_builtin_command(CommandLine*);
 
 BuiltinCommandFunction get_builtin_command_function(BuiltinCommand);

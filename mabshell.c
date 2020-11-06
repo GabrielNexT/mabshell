@@ -36,7 +36,8 @@ int main(int argc, char** argv) {
                 handle_external_command(&command_line);
             }
         }
-        
+
+        free_command_line(&command_line);
     }
 
     return 0;
@@ -108,6 +109,12 @@ CommandLine parse_command_line(char* line) {
     get_arguments(result.arguments, line);
 
     return result;
+}
+
+void free_command_line(CommandLine* command_line) {
+    for(int i = 0; i < command_line->argument_count; i++) {
+        free(command_line->arguments[i]);
+    }
 }
 
 BuiltinCommand try_get_builtin_command(CommandLine* command_line) {
