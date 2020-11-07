@@ -11,13 +11,18 @@
 
 #include "mabshell.h"
 #include "processes.h"
+#include "jobs.h"
 #include "utils.h"
+
+bool has_foreground_process = false;
+pid_t foreground_process_id;
+
+JobList job_list;
 
 int main(int argc, char** argv) {
 
-    bool has_foreground_process = false;
-    pid_t foreground_process_id;
-
+    job_list = new_job_list();
+    
     signal(SIGINT, handle_sig_int); 
     signal(SIGTSTP, handle_sig_stop); 
 
@@ -30,7 +35,6 @@ int main(int argc, char** argv) {
 
         // Parsing the command line
         CommandLine command_line = parse_command_line(line);
-        free(line);
 
         if(command_line.argument_count != 0) {
             BuiltinCommand builtin = try_get_builtin_command(&command_line);
@@ -40,7 +44,7 @@ int main(int argc, char** argv) {
             } else {
                 pid_t pid = handle_external_command(&command_line);
                 if(pid > 0) {
-                    // TODO: Put process on job list
+                    add_process_to_job_list(&job_list, pid, line);
                     
                     // Process created with success
                     if(!command_line.run_on_background) {
@@ -224,7 +228,15 @@ void handle_cd(CommandLine* command_line) {
 }
 
 void handle_jobs(CommandLine* command_line) {
-    printf("Handling jobs\n");
+    JobListNode* job_ptr = job_list.first;
+
+    while (job_ptr != NULL) {
+        // TODO: Status
+        printf("[%d]\tRunning\t\t%s\n", job_ptr->job.job_id, job_ptr->job.line);
+
+        job_ptr = job_ptr->next;
+    }
+    
 }
 
 pid_t handle_external_command(CommandLine* command_line) {
