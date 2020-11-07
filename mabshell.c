@@ -80,7 +80,7 @@ char* read_line() {
 
     bool finished = false;
     while(!finished) {
-        char* write_ptr = result + (offset * sizeof(char));
+        char* write_ptr = result + offset;
         
         if(fgets(write_ptr, buffer_size, stdin) == NULL) {
             printf("\nExit: End-of-file\n");
