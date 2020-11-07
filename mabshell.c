@@ -199,8 +199,45 @@ void handle_sig_stop(int signal) {
     printf("Handling SIGSTP\n");
 }
 
+void job_to_foreground(Job job) {
+    // TODO: kill SIGCONT
+    foreground_process_id = job.process_id;
+    has_foreground_process = true;
+
+    puts(job.line);
+}
+
 void handle_fg(CommandLine* command_line) {
-    printf("Handling fg\n");
+    if(command_line->argument_count == 1) {
+        if(job_list.last == NULL) {
+            printf("mabshell: fg : atual : trabalho não existe\n");
+        } else {
+            job_to_foreground(job_list.last->job);
+        }
+
+        return;
+    }
+
+    char* arg = command_line->arguments[1];
+
+    Job job;
+    if(arg[0] == '%') {
+        // Utilizano um JID
+        int jid = atoi(arg + 1);
+        if(!get_job_with_jid(&job_list, jid, &job)) {
+            printf("mabshell: fg : %s : trabalho não existe\n", arg);
+            return;
+        }
+    } else {
+        // Utilizano um PID
+        pid_t pid = atoi(arg);
+        if(!get_job_with_pid(&job_list, pid, &job)) {
+            printf("mabshell: fg : %s : trabalho não existe\n", arg);
+            return;
+        }
+    }
+
+    job_to_foreground(job);
 }
 
 void handle_bg(CommandLine* command_line) {
@@ -231,8 +268,7 @@ void handle_jobs(CommandLine* command_line) {
     JobListNode* job_ptr = job_list.first;
 
     while (job_ptr != NULL) {
-        // TODO: Status
-        printf("[%d]\tRunning\t\t%s\n", job_ptr->job.job_id, job_ptr->job.line);
+        print_job(job_ptr->job);
 
         job_ptr = job_ptr->next;
     }

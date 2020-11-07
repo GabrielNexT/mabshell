@@ -82,3 +82,8 @@ bool get_job_with_jid(JobList* list, int jid, Job* result) {
 void remove_job_with_pid(JobList* list, pid_t pid) {
 
 }
+
+void print_job(Job job) {
+    // TODO: Status
+    printf("[%d]: %d\tRunning\t\t%s\n", job.job_id, job.process_id, job.line);
+}

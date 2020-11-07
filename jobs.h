@@ -38,4 +38,6 @@ bool get_job_with_jid(JobList*, int, Job*);
 
 void remove_job_with_pid(JobList*, pid_t);
 
+void print_job(Job);
+
 #endif
