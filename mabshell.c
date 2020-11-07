@@ -14,9 +14,11 @@
 #include "jobs.h"
 #include "utils.h"
 
+#define PATH_MAX 1000
+
 bool has_foreground_process = false;
 pid_t foreground_process_id;
-
+char path[PATH_MAX];
 JobList job_list;
 
 int main(int argc, char** argv) {
@@ -27,9 +29,10 @@ int main(int argc, char** argv) {
     signal(SIGTSTP, handle_sig_stop); 
 
     while(true) {
-        // Writing prompt
-        printf("mabshell> ");
+        getcwd(path, sizeof(path));
 
+        // Writing prompt
+        printf("\033[1;32mmabshell\n>\033[0m");
         // Reading a command
         char* line = read_line();
 
@@ -171,6 +174,10 @@ BuiltinCommand try_get_builtin_command(CommandLine* command_line) {
         return JOBS;
     }
 
+    if(strcmp(command_name, "pwd") == 0) {
+        return PWD;
+    }
+
     return NO_BUILTIN_COMMAND;
 }
 
@@ -185,6 +192,8 @@ BuiltinCommandFunction get_builtin_command_function(BuiltinCommand builtin_comma
         return &handle_cd;
     case JOBS:
         return &handle_jobs;
+    case PWD:
+        return &handle_pwd;
     default:
         return NULL;
     }
@@ -242,6 +251,10 @@ void handle_fg(CommandLine* command_line) {
 
 void handle_bg(CommandLine* command_line) {
     printf("Handling bg\n");
+}
+
+void handle_pwd(CommandLine* command_line) {
+    printf("%s\n", path);
 }
 
 void handle_cd(CommandLine* command_line) {
