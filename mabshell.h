@@ -17,7 +17,8 @@ typedef enum {
     BG,
     CD,
     JOBS,
-    PWD
+    PWD,
+    LS
 } BuiltinCommand;
 
 typedef void (*BuiltinCommandFunction)(CommandLine*);
@@ -45,6 +46,8 @@ void handle_cd(CommandLine*);
 void handle_jobs(CommandLine*);
 
 void handle_pwd(CommandLine*);
+
+void handle_ls(CommandLine*);
 
 pid_t handle_external_command(CommandLine*);
 

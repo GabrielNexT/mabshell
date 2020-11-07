@@ -18,6 +18,10 @@ pid_t spawn_process(int argument_count, char** arguments) {
             perror("mabshell: fail execv :");
             exit(1);
         }
+    } else {
+        int status;
+        wait(&status);
+        printf("%d", status);
     }
 
     return pid;

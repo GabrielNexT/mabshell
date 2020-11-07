@@ -2,19 +2,19 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <dirent.h>
 
 #include <errno.h>
 #include <signal.h> 
 #include <unistd.h>
 #include <sys/wait.h>
 #include <sys/types.h>
-
 #include "mabshell.h"
 #include "processes.h"
 #include "jobs.h"
 #include "utils.h"
 
-#define PATH_MAX 1000
+#define PATH_MAX 4096
 
 bool has_foreground_process = false;
 pid_t foreground_process_id;
@@ -32,7 +32,7 @@ int main(int argc, char** argv) {
         getcwd(path, sizeof(path));
 
         // Writing prompt
-        printf("\033[1;32mmabshell\n>\033[0m");
+        printf("\033[1;32mmabshell\n> \033[0m");
         // Reading a command
         char* line = read_line();
 
@@ -44,11 +44,12 @@ int main(int argc, char** argv) {
             if(builtin != NO_BUILTIN_COMMAND) {
                 BuiltinCommandFunction command_function = get_builtin_command_function(builtin);
                 command_function(&command_line);
+
             } else {
                 pid_t pid = handle_external_command(&command_line);
                 if(pid > 0) {
                     add_process_to_job_list(&job_list, pid, line);
-                    
+
                     // Process created with success
                     if(!command_line.run_on_background) {
                         has_foreground_process = true;
@@ -178,6 +179,10 @@ BuiltinCommand try_get_builtin_command(CommandLine* command_line) {
         return PWD;
     }
 
+    if(strcmp(command_name, "ls") == 0) {
+        return LS;
+    }
+
     return NO_BUILTIN_COMMAND;
 }
 
@@ -194,6 +199,8 @@ BuiltinCommandFunction get_builtin_command_function(BuiltinCommand builtin_comma
         return &handle_jobs;
     case PWD:
         return &handle_pwd;
+    case LS:
+        return &handle_ls;
     default:
         return NULL;
     }
@@ -257,6 +264,23 @@ void handle_pwd(CommandLine* command_line) {
     printf("%s\n", path);
 }
 
+void handle_ls(CommandLine* command_line) {
+    struct dirent** filelist;
+    int n;
+    if(command_line->argument_count == 1) {
+        n = scandir(".", &filelist, NULL, alphasort);
+    } else {
+        n = scandir(command_line->arguments[1], &filelist, NULL, alphasort);
+    }
+
+    if(n) {
+        while(n--) {
+            printf("%s\n", filelist[n]->d_name);
+            free(filelist[n]);
+        }
+    }
+}
+
 void handle_cd(CommandLine* command_line) {
     // NOTE: Não tratamos o caso 'cd ~', ou seja, não fazemos a expansão de til.
     char* destination_path;
@@ -282,7 +306,6 @@ void handle_jobs(CommandLine* command_line) {
 
     while (job_ptr != NULL) {
         print_job(job_ptr->job);
-
         job_ptr = job_ptr->next;
     }
     
