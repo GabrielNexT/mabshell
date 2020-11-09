@@ -47,6 +47,8 @@ void update_job_list(JobList*, pid_t, JobStatus);
 
 void remove_job_with_pid(JobList*, pid_t);
 
+void remove_exited_jobs(JobList*);
+
 void print_job(Job);
 
 #endif

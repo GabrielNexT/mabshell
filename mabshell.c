@@ -72,7 +72,7 @@ int main(int argc, char** argv) {
                     perror("mabshell: waitpid(): ");
                     exit(1);
                 }
-                
+
                 if(WIFEXITED(status)) {
                     update_job_list(&job_list, foreground_process_id, EXITED);
                 }
@@ -379,6 +379,8 @@ void handle_jobs(CommandLine* command_line) {
         job_ptr = job_ptr->next;
     }
     
+    // TODO: Função está dando SEG_FAULT
+    // remove_exited_jobs(&job_list);
 }
 
 pid_t handle_external_command(CommandLine* command_line) {

@@ -91,12 +91,63 @@ void update_job_list(JobList* job_list, pid_t pid, JobStatus job_status) {
         }
         
         ptr = ptr->next;
-    }
-    
+    }  
 }
 
 void remove_job_with_pid(JobList* list, pid_t pid) {
+    if(list->first == NULL) {
+        return;
+    }
 
+    if(list->first->job.process_id == pid) {
+        // TODO: Leak de memória
+        list->first = list->first->next;
+        if(list->first == NULL) {
+            list->last = list->first;
+        }
+    }
+
+    JobListNode* ptr = list->first;
+
+    while(ptr->next != NULL) {
+        if(ptr->next->job.process_id == pid) {
+            // TODO: Leak de memória
+            ptr->next = ptr->next->next;
+            if(ptr->next == NULL) {
+                list->last = ptr;
+            }
+        }
+
+        ptr = ptr->next;
+    }
+}
+
+void remove_exited_jobs(JobList* list) {
+    if(list->first == NULL) {
+        return;
+    }
+
+    while(list->first != NULL && list->first->job.status == EXITED) {
+        // TODO: Leak de memória
+        list->first = list->first->next;
+        if(list->first == NULL) {
+            list->last = list->first;
+        }
+    }
+
+    JobListNode* ptr = list->first;
+
+    while(ptr->next != NULL) {
+        if(ptr->next->job.status == EXITED) {
+            // TODO: Leak de memória
+            ptr->next = ptr->next->next;
+            if(ptr->next == NULL) {
+                list->last = ptr;
+            }
+        }
+
+        ptr = ptr->next;
+    }
 }
 
 void print_job(Job job) {
