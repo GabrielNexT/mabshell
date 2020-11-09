@@ -4,10 +4,17 @@
 #include <stdbool.h>
 #include <sys/types.h>
 
+typedef enum {
+    RUNNING,
+    STOPPED,
+    EXITED
+}  JobStatus;
+
 typedef struct {
-    // TODO: Status do processo
     int job_id;
     pid_t process_id;
+
+    JobStatus status;
 
     char* line;
 } Job;
@@ -24,17 +31,19 @@ typedef struct
     JobListNode* last;
 } JobList;
 
-Job new_job(int, pid_t, char*);
+Job new_job(int, pid_t, JobStatus, char*);
 
 JobListNode* new_job_list_node(Job);
 
 JobList new_job_list();
 
-void add_process_to_job_list(JobList*, pid_t, char*);
+void add_process_to_job_list(JobList*, pid_t, JobStatus, char*);
 
 bool get_job_with_pid(JobList*, pid_t, Job*);
 
 bool get_job_with_jid(JobList*, int, Job*);
+
+void update_job_list(JobList*, pid_t, JobStatus);
 
 void remove_job_with_pid(JobList*, pid_t);
 

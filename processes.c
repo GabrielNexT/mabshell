@@ -15,13 +15,9 @@ pid_t spawn_process(int argument_count, char** arguments) {
         // Processo filho
         int status = execv(arguments[0], arguments);
         if(status < 0) {
-            perror("mabshell: fail execv :");
+            perror("mabshell: fail execv() :");
             exit(1);
         }
-    } else {
-        int status;
-        wait(&status);
-        printf("%d", status);
     }
 
     return pid;

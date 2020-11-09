@@ -1,11 +1,13 @@
+#include <stdio.h>
 #include <stdlib.h>
 
 #include "jobs.h"
 
-Job new_job(int jid, pid_t pid, char* line) {
+Job new_job(int jid, pid_t pid, JobStatus status, char* line) {
     Job result = {
         .job_id = jid,
         .process_id = pid,
+        .status = status,
         .line = line
     };
 
@@ -29,7 +31,7 @@ JobList new_job_list() {
     return list;
 }
 
-void add_process_to_job_list(JobList* list, pid_t pid, char* line) {
+void add_process_to_job_list(JobList* list, pid_t pid, JobStatus status, char* line) {
     int jid;
     if(list->last == NULL) {
         jid = 1;
@@ -37,7 +39,7 @@ void add_process_to_job_list(JobList* list, pid_t pid, char* line) {
         jid = list->last->job.job_id + 1;
     }
 
-    Job job = new_job(jid, pid, line);
+    Job job = new_job(jid, pid, status, line);
     JobListNode* new_node = new_job_list_node(job);
 
     if(list->last == NULL) {
@@ -79,11 +81,45 @@ bool get_job_with_jid(JobList* list, int jid, Job* result) {
     return false;
 }
 
+void update_job_list(JobList* job_list, pid_t pid, JobStatus job_status) {
+    JobListNode* ptr = job_list->first;
+
+    while (ptr != NULL)
+    {
+        if(ptr->job.process_id == pid) {
+            ptr->job.status = job_status;
+        }
+        
+        ptr = ptr->next;
+    }
+    
+}
+
 void remove_job_with_pid(JobList* list, pid_t pid) {
 
 }
 
 void print_job(Job job) {
-    // TODO: Status
-    printf("[%d]: %d\tRunning\t\t%s\n", job.job_id, job.process_id, job.line);
+    char* status;
+
+    switch (job.status)
+    {
+    case RUNNING:
+        status = "Running";
+        break;
+    
+    case STOPPED:
+        status = "Stopped";
+        break;
+
+    case EXITED:
+        status = "Exited";
+        break;
+
+    default:
+        status = "Unknown status";
+        break;
+    }
+
+    printf("[%d]: %d\t%s\t\t%s\n", job.job_id, job.process_id, status, job.line);
 }

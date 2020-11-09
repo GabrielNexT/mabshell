@@ -37,6 +37,8 @@ void handle_sig_int(int);
 
 void handle_sig_stop(int);
 
+void handle_sig_child(int, siginfo_t*, void*);
+
 void handle_fg(CommandLine*);
 
 void handle_bg(CommandLine*);
